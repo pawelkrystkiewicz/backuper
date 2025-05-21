@@ -3,7 +3,7 @@ import cliProgress from 'cli-progress'
 import fs from 'fs'
 import { Client } from 'minio'
 import cron from 'node-cron'
-import { config, type DatabaseConfig } from './config'
+import { config, jobsFrequency, type DatabaseConfig } from './config'
 
 const minioClient = new Client({
   endPoint: config.MINIO_ENDPOINT,
@@ -19,7 +19,7 @@ async function backupOneDB(db: DatabaseConfig) {
     return
   }
 
-  console.log(`Starting backup for ${db.destination}`)
+  console.log(`\nStarting backup for ${db.destination}`)
   const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
   bar.start(100, 0)
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -33,7 +33,7 @@ async function backupOneDB(db: DatabaseConfig) {
 
     if (err || stderr) {
       console.error(`\n❌ Backup failed for ${db.database}:`, err, stderr)
-      bar.stop()
+
       return
     }
 
@@ -45,15 +45,14 @@ async function backupOneDB(db: DatabaseConfig) {
       .then(() => {
         console.log(`\n✅ Backup uploaded: ${db.database} → ${destPath}`)
         fs.unlinkSync(fileName)
+        bar.update(100)
       })
       .catch(err => {
         console.error(`\n❌ MinIO upload failed for ${db.database}:`, err)
       })
-      .finally(() => {
-        bar.update(100)
-        bar.stop()
-      })
   })
+
+  bar.stop()
 }
 
 async function backupAll() {
@@ -69,9 +68,8 @@ async function backupAll() {
 }
 
 const main = async () => {
-  console.log('\nStarting cron jobs')
-  // await cron.schedule('0 * * * *', backupAll)
-  await backupAll()
+  console.log(`\nStarting cron jobs with ${config.JOBS_FREQUENCY} frequency`)
+  await cron.schedule(jobsFrequency[config.JOBS_FREQUENCY as keyof typeof jobsFrequency], backupAll)
 }
 
 main()

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { z } from 'zod'
 
-const jobsFrequency = {
+export const jobsFrequency = {
   hourly: '0 * * * *',
   daily: '0 0 * * *',
   weekly: '0 0 * * 0',
