@@ -15,7 +15,7 @@ const BUCKET = config.MINIO_BUCKET
 
 async function backupOneDB(db: DatabaseConfig) {
   if (!db?.destination) {
-    console.error(`❌ Destination not set for ${db.database}`)
+    console.error(`\n❌ Destination not set for ${db.database}`)
     return
   }
 
@@ -25,25 +25,29 @@ async function backupOneDB(db: DatabaseConfig) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const fileName = `/tmp/${db.database}_${timestamp}.sql.gz`
   const dumpCommand = `PGPASSWORD=${db.password} pg_dump -h ${db.host} -p ${db.port} -U ${db.user} ${db.database} | gzip > ${fileName}`
+  const destPath = `${db.destination}/${timestamp}.sql.gz`
 
-  exec(dumpCommand, err => {
+  exec(dumpCommand, async (err, stdout, stderr) => {
+    console.info(stdout)
     bar.increment()
-    if (err) {
-      console.error(`❌ Backup failed for ${db.database}:`, err)
+
+    if (err || stderr) {
+      console.error(`\n❌ Backup failed for ${db.database}:`, err, stderr)
       bar.stop()
       return
     }
 
-    const destPath = `${db.destination}/${timestamp}.sql.gz`
-
-    minioClient
+    console.log('✅ File created')
+    bar.update(50)
+    console.log('uploading to minio')
+    await minioClient
       .fPutObject(BUCKET, destPath, fileName)
       .then(() => {
-        console.log(`✅ Backup uploaded: ${db.database} → ${destPath}`)
+        console.log(`\n✅ Backup uploaded: ${db.database} → ${destPath}`)
         fs.unlinkSync(fileName)
       })
       .catch(err => {
-        console.error(`❌ MinIO upload failed for ${db.database}:`, err)
+        console.error(`\n❌ MinIO upload failed for ${db.database}:`, err)
       })
       .finally(() => {
         bar.update(100)
@@ -65,8 +69,9 @@ async function backupAll() {
 }
 
 const main = async () => {
-  console.log('Starting cron jobs')
-  await cron.schedule('0 * * * *', backupAll)
+  console.log('\nStarting cron jobs')
+  // await cron.schedule('0 * * * *', backupAll)
+  await backupAll()
 }
 
 main()
