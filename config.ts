@@ -36,13 +36,13 @@ const EnvSchema = z.object({
   MINIO_SECRET_KEY: z.string().min(1),
   MINIO_BUCKET: z.string().min(1),
   DATABASES_CONFIG: z.string().transform((val, ctx) => {
-    const parsed = JSON.parse(JSON.parse(JSON.stringify(val)))
+    const parsed = JSON.parse(JSON.stringify(val))
     try {
       return z.array(DatabaseConfigSchema).parse(parsed)
     } catch (err) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `DATABASES_CONFIG must be a valid JSON array of database configs, got ${val} | ${parsed}`,
+        message: `DATABASES_CONFIG must be a valid JSON array of database configs, got ${val}`,
       })
       return z.NEVER
     }
