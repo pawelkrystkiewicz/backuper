@@ -1,0 +1,18 @@
+{
+  "name": "backuper",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/cli-progress": "^3.11.6",
+    "cli-progress": "^3.12.0",
+    "dotenv": "^16.5.0",
+    "minio": "^8.0.5",
+    "node-cron": "^4.0.6",
+    "zod": "^3.25.17"
+  }
+}
