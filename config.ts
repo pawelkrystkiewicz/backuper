@@ -36,8 +36,8 @@ const EnvSchema = z.object({
   MINIO_SECRET_KEY: z.string().min(1),
   MINIO_BUCKET: z.string().min(1),
   DATABASES_CONFIG: z.string().transform((val, ctx) => {
+    const parsed = JSON.parse(JSON.parse(JSON.stringify(val)))
     try {
-      const parsed = JSON.parse(JSON.parse(JSON.stringify(val)))
       return z.array(DatabaseConfigSchema).parse(parsed)
     } catch (err) {
       ctx.addIssue({
