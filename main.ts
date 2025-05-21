@@ -54,9 +54,9 @@ async function backupOneDB(db: DatabaseConfig) {
 
 async function backupAll() {
   const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
-  const total = config.DATABASES_CONFIG.length
+  const total = config.databases.length
   bar.start(total, 0)
-  for (const db of config.DATABASES_CONFIG) {
+  for (const db of config.databases) {
     await backupOneDB(db)
     bar.increment()
   }
