@@ -14,5 +14,9 @@
     "minio": "^8.0.5",
     "node-cron": "^4.0.6",
     "zod": "^3.25.17"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "bun run main.ts"
   }
 }
